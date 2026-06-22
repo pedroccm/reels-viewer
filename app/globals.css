@@ -114,6 +114,12 @@ input:focus { border-color: #3a3a4a; }
 .dtag { font-size: 12px; background: rgba(45,212,191,.12); color: #8af0e2; border: 1px solid rgba(45,212,191,.3); padding: 3px 6px 3px 10px; border-radius: 999px; display: flex; gap: 4px; align-items: center; }
 .dtag button { background: none; border: none; color: #8af0e2; font-size: 14px; line-height: 1; padding: 0 2px; }
 .dtags input { width: 130px; }
+.tagpick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 14px; }
+.picklbl { font-size: 11px; color: var(--mut); margin-right: 2px; }
+.pick { font-size: 12px; background: transparent; color: var(--mut); border: 1px dashed var(--line); padding: 3px 9px; border-radius: 999px; }
+.pick:hover { color: #8af0e2; border-color: rgba(45,212,191,.55); background: rgba(45,212,191,.07); }
+.pick b { color: var(--mut); font-weight: 400; }
+
 .actions { display: flex; gap: 8px; margin: 10px 0 16px; align-items: center; }
 .tlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--mut); margin: 18px 0 8px; }
 .transcript { font-size: 14px; line-height: 1.65; color: #e7e7ef; white-space: pre-wrap; }

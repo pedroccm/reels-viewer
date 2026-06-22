@@ -290,6 +290,23 @@ export default function Viewer({
                 )}
               </div>
 
+              {unlocked && allTags.some(([t]) => !tagsOf(current.code).includes(t)) && (
+                <div className="tagpick">
+                  <span className="picklbl">clique p/ adicionar:</span>
+                  {allTags
+                    .filter(([t]) => !tagsOf(current.code).includes(t))
+                    .map(([t, n]) => (
+                      <button
+                        key={t}
+                        className="pick"
+                        onClick={() => mutate({ op: "addTag", code: current.code, tag: t })}
+                      >
+                        #{t} <b>{n}</b>
+                      </button>
+                    ))}
+                </div>
+              )}
+
               {unlocked && (
                 <div className="actions">
                   <button
