@@ -19,6 +19,7 @@ export type Reel = {
 export type Curation = {
   tags: Record<string, string[]>; // code -> tags
   hidden: string[]; // codes
+  langs?: Record<string, string>; // code -> overridden language
 };
 
 export type Manifest = {

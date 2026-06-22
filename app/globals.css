@@ -142,6 +142,10 @@ input:focus { border-color: #3a3a4a; }
 .pick:hover { color: #8af0e2; border-color: rgba(45,212,191,.55); background: rgba(45,212,191,.07); }
 .pick b { color: var(--mut); font-weight: 400; }
 
+.langedit { display: flex; align-items: center; gap: 8px; margin: 12px 0; color: var(--mut); font-size: 12.5px; }
+.langedit select { background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 8px; padding: 6px 8px; font-size: 13px; outline: none; }
+.langedit select:focus { border-color: #3a3a4a; }
+
 .actions { display: flex; gap: 8px; margin: 10px 0 16px; align-items: center; }
 .tlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--mut); margin: 18px 0 8px; }
 .transcript { font-size: 14px; line-height: 1.65; color: #e7e7ef; white-space: pre-wrap; }

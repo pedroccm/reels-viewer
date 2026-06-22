@@ -17,8 +17,8 @@ export async function getManifest(): Promise<Manifest> {
 }
 
 export async function getCuration(): Promise<Curation> {
-  const c = await readJSON<Curation>("curation", { tags: {}, hidden: [] });
-  return { tags: c.tags || {}, hidden: c.hidden || [] };
+  const c = await readJSON<Curation>("curation", { tags: {}, hidden: [], langs: {} });
+  return { tags: c.tags || {}, hidden: c.hidden || [], langs: c.langs || {} };
 }
 
 export async function getData(): Promise<{ reels: Reel[]; curation: Curation; title: string }> {

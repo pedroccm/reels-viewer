@@ -24,6 +24,7 @@ const LANGS: Record<string, string> = {
   Spanish: "🇪🇸 Español",
 };
 const langLabel = (l: string) => LANGS[l] || l;
+const LANG_OPTIONS = ["Portuguese", "English", "Spanish", "French", "Italian", "German", "Korean", "Russian", "Chinese", "Japanese"];
 
 export default function Viewer({
   reels,
@@ -61,6 +62,7 @@ export default function Viewer({
 
   const hidden = useMemo(() => new Set(curation.hidden || []), [curation]);
   const tagsOf = (code: string) => curation.tags?.[code] || [];
+  const effLang = (r: Reel) => curation.langs?.[r.code] || r.lang;
 
   const allTags = useMemo(() => {
     const c: Record<string, number> = {};
@@ -76,9 +78,12 @@ export default function Viewer({
 
   const langs = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const r of reels) if (r.lang) c[r.lang] = (c[r.lang] || 0) + 1;
+    for (const r of reels) {
+      const l = curation.langs?.[r.code] || r.lang;
+      if (l) c[l] = (c[l] || 0) + 1;
+    }
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
-  }, [reels]);
+  }, [reels, curation]);
 
   const dayKey = (ts: number | null) => {
     if (!ts) return "";
@@ -120,7 +125,7 @@ export default function Viewer({
       .filter((r) => !tagFilter || tagsOf(r.code).includes(tagFilter))
       .filter((r) => !qq || (r.caption + " " + r.transcript).toLowerCase().includes(qq))
       .filter((r) => !dateFilter || dayKey(r.date_ts) === dateFilter)
-      .filter((r) => !langFilter || r.lang === langFilter)
+      .filter((r) => !langFilter || effLang(r) === langFilter)
       .sort((a, b) => (b.date_ts || 0) - (a.date_ts || 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reels, q, tagFilter, byFilter, langFilter, showHidden, curation, dateFilter]);
@@ -365,7 +370,7 @@ export default function Viewer({
                 </span>
                 <span>{current.by}</span>
                 {current.date_ts && <span>· {fmtDate(current.date_ts)}</span>}
-                {current.lang && <span>· {current.lang}</span>}
+                {effLang(current) && <span>· {langLabel(effLang(current))}</span>}
               </div>
               <div className="dstats">
                 {([
@@ -419,6 +424,25 @@ export default function Viewer({
                         #{t} <b>{n}</b>
                       </button>
                     ))}
+                </div>
+              )}
+
+              {unlocked && (
+                <div className="langedit">
+                  <span>Idioma:</span>
+                  <select
+                    value={curation.langs?.[current.code] || "__auto__"}
+                    onChange={(e) =>
+                      mutate({ op: "setLang", code: current.code, lang: e.target.value === "__auto__" ? "" : e.target.value })
+                    }
+                  >
+                    <option value="__auto__">auto (detectado: {current.lang || "?"})</option>
+                    {Array.from(new Set([...LANG_OPTIONS, current.lang].filter(Boolean))).map((l) => (
+                      <option key={l as string} value={l as string}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
