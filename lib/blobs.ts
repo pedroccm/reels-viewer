@@ -20,7 +20,7 @@ function store() {
 
 export async function readJSON<T>(key: string, fallback: T): Promise<T> {
   try {
-    const v = (await store().get(key, { type: "json" })) as T | null;
+    const v = (await store().get(key, { type: "json", consistency: "strong" })) as T | null;
     return v ?? fallback;
   } catch {
     // local dev without a Netlify Blobs context -> file fallback

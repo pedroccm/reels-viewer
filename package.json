@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "push-manifest": "node scripts/push-manifest.mjs"
+    "start": "next start"
   },
   "dependencies": {
     "@netlify/blobs": "latest",

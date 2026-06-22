@@ -1,52 +1,53 @@
 # reels-viewer
 
 A Next.js app to browse, **tag**, and **curate** the reels collected by
-[`reels-to-site`](../reels-to-site). Two-pane layout (list + scrollable detail with the
-video and transcript), tag filtering, and hide/show, all persisted to **Netlify Blobs**
-(no database). Editing is gated by a password.
+[`reels-to-site`](../reels-to-site). Two-pane layout (list on the left, scrollable detail
+with the video + transcript on the right), tag filtering, and hide/show. Editing is gated
+by a password. No database.
 
-## Data model
+**Live:** https://sportsfreak-viewer.netlify.app
 
-- **manifest** (the reels): produced by the `reels-to-site` pipeline. Lives in Netlify Blobs
-  (key `manifest`), uploaded with `npm run push-manifest`. Never committed to git.
-- **curation** (`{ tags: {code: [..]}, hidden: [code] }`): edited live in the app, persisted
-  to Netlify Blobs (key `curation`).
+## How the data flows
 
-Locally (plain `next dev`) both fall back to `data/manifest.json` and `data/curation.json`.
+- **Reels (`manifest`)** live in **Cloudflare R2** (public JSON), produced by the
+  `reels-to-site` pipeline. The app fetches it from `MANIFEST_URL` (cached ~10 min).
+- **Curation (`{ tags, hidden }`)** lives in **Netlify Blobs**, written by the app's own
+  API route. Persisted, no DB.
+- Locally (plain `next dev`) both fall back to `data/manifest.json` / `data/curation.json`.
+
+## Env vars
+
+| var | where | what |
+|-----|-------|------|
+| `EDIT_PASSWORD` | Netlify + local `.env` | password to unlock editing |
+| `MANIFEST_URL` | Netlify | public R2 URL of the manifest JSON |
+| `NETLIFY_SITE_ID`, `NETLIFY_AUTH_TOKEN` | Netlify | let the functions reach Blobs |
 
 ## Local dev
 
 ```bash
 npm install
-cp .env.example .env        # set EDIT_PASSWORD
-# data/manifest.json was copied from the pipeline already
-npm run dev                 # http://localhost:3000
+cp .env.example .env          # set EDIT_PASSWORD
+# data/manifest.json is copied from the pipeline (gitignored)
+npm run dev                   # http://localhost:3000
 ```
 
-Click "Editar", type the `EDIT_PASSWORD`, and you can add tags / hide videos. Locally,
-changes save to `data/curation.json`.
+Click **Editar**, type the password, then add tags / hide videos. Locally, curation saves
+to `data/curation.json`.
 
-## Deploy (Netlify + Blobs)
+## Updating the reels (after running the pipeline)
 
-1. Push this repo to GitHub and create a Netlify site linked to it (Netlify auto-detects
-   Next.js and runs the build).
-2. In the Netlify site settings, set env var **`EDIT_PASSWORD`** (your editing password).
-3. Upload the reels to Blobs from your machine:
-   ```bash
-   # in .env: NETLIFY_SITE_ID=<the site id>  NETLIFY_AUTH_TOKEN=<your token>
-   npm run push-manifest
-   ```
-
-The deployed app reads/writes Blobs automatically (Netlify injects the context). Editing
-on the live site requires the password; everyone else just views.
-
-## Updating the reels
-
-After running the `reels-to-site` pipeline again:
+Re-upload the manifest to R2 (the app picks it up within ~10 min):
 
 ```bash
-cp ../reels-to-site/sites/sportsfreakazoide/manifest.json data/manifest.json
-npm run push-manifest
+cd ../reels-to-site
+python -c "import r2; r2.upload('sites/sportsfreakazoide/manifest.json','manifest/sportsfreakazoide.json','application/json')"
 ```
 
-(No rebuild needed: the app reads the manifest from Blobs at request time.)
+No rebuild needed. To force an instant refresh, redeploy the Netlify site.
+
+## Deploy
+
+Repo is connected to Netlify (auto-builds Next.js on push). Set the env vars above in the
+Netlify site settings. The deployed app reads the manifest from R2 and reads/writes curation
+in Netlify Blobs; editing requires the password, everyone else just views.
