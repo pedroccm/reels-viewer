@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Curation, Reel } from "@/lib/types";
 
 const COLORS = ["#ff3d77", "#7b5cff", "#2dd4bf", "#f59e0b", "#38bdf8", "#fb7185", "#a3e635", "#c084fc"];
@@ -49,6 +49,7 @@ export default function Viewer({
   const [unlocked, setUnlocked] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("editpw");
@@ -170,6 +171,32 @@ export default function Viewer({
     if (!current || !tagInput.trim()) return;
     mutate({ op: "addTag", code: current.code, tag: tagInput });
     setTagInput("");
+  }
+
+  function printFrame() {
+    const v = videoRef.current;
+    if (!v || !v.videoWidth) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = v.videoWidth;
+    canvas.height = v.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        const name = (current?.creator || current?.code || "frame").replace(/[^\w.-]/g, "_");
+        a.download = `${name}-${Math.floor(v.currentTime)}s.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      }, "image/png");
+    } catch {
+      alert("Não consegui capturar o frame (bloqueio de CORS).");
+    }
   }
 
   return (
@@ -362,13 +389,20 @@ export default function Viewer({
             <div className="dvideo">
               <video
                 key={current.code}
+                ref={videoRef}
                 src={current.video_url}
+                crossOrigin="anonymous"
                 controls
                 autoPlay
                 loop
                 playsInline
                 poster={current.thumb_url || undefined}
               />
+            </div>
+            <div className="printbar">
+              <button className="btn" onClick={printFrame} title="baixa o frame atual do vídeo (pause antes)">
+                📸 Print do frame
+              </button>
             </div>
             <div className="dbody">
               <div className="dmeta">
