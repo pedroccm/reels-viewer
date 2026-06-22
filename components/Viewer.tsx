@@ -43,6 +43,7 @@ export default function Viewer({
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [byFilter, setByFilter] = useState<string | null>(null);
   const [langFilter, setLangFilter] = useState<string | null>(null);
+  const [creatorFilter, setCreatorFilter] = useState<string | null>(null);
   const [showHidden, setShowHidden] = useState(false);
   const [pw, setPw] = useState("");
   const [unlocked, setUnlocked] = useState(false);
@@ -126,9 +127,10 @@ export default function Viewer({
       .filter((r) => !qq || (r.caption + " " + r.transcript).toLowerCase().includes(qq))
       .filter((r) => !dateFilter || dayKey(r.date_ts) === dateFilter)
       .filter((r) => !langFilter || effLang(r) === langFilter)
+      .filter((r) => !creatorFilter || r.creator === creatorFilter)
       .sort((a, b) => (b.date_ts || 0) - (a.date_ts || 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reels, q, tagFilter, byFilter, langFilter, showHidden, curation, dateFilter]);
+  }, [reels, q, tagFilter, byFilter, langFilter, creatorFilter, showHidden, curation, dateFilter]);
 
   const current = useMemo(() => reels.find((r) => r.code === selected) || null, [reels, selected]);
 
@@ -260,6 +262,11 @@ export default function Viewer({
             {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })} ×
           </button>
         )}
+        {creatorFilter && (
+          <button className="chip on" onClick={() => setCreatorFilter(null)} title="limpar criador">
+            👤 @{creatorFilter} ×
+          </button>
+        )}
 
         {people.length > 1 && (
           <div className="chips">
@@ -369,6 +376,15 @@ export default function Viewer({
                   {(current.by || "?").slice(0, 2).toUpperCase()}
                 </span>
                 <span>{current.by}</span>
+                {current.creator && (
+                  <button
+                    className="creatorlink"
+                    onClick={() => { setCreatorFilter(current.creator); setSelected(null); }}
+                    title="ver todos desse criador"
+                  >
+                    · por @{current.creator}
+                  </button>
+                )}
                 {current.date_ts && <span>· {fmtDate(current.date_ts)}</span>}
                 {effLang(current) && <span>· {langLabel(effLang(current))}</span>}
               </div>
@@ -472,6 +488,31 @@ export default function Viewer({
                   Abrir original ↗
                 </a>
               </div>
+
+              {current.creator &&
+                (() => {
+                  const others = reels.filter(
+                    (r) => r.creator === current.creator && r.code !== current.code && (showHidden || !hidden.has(r.code))
+                  );
+                  if (!others.length) return null;
+                  return (
+                    <div className="related-wrap">
+                      <div className="tlabel">Outros de @{current.creator} ({others.length})</div>
+                      <div className="related">
+                        {others.slice(0, 24).map((r) => (
+                          <button
+                            key={r.code}
+                            className="rel"
+                            onClick={() => setSelected(r.code)}
+                            title={fmtDate(r.date_ts)}
+                          >
+                            {r.thumb_url ? <img loading="lazy" src={r.thumb_url} alt="" /> : <span>{r.code}</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
             </div>
           </>
         )}

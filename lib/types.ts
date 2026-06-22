@@ -3,6 +3,7 @@ export type Reel = {
   platform: string;
   source_url: string;
   by: string;
+  creator: string;
   caption: string;
   date_ts: number | null;
   views: number | null;
