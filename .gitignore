@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+.netlify/
+
+# secrets + private data (reels live in Netlify Blobs / your machine, not in git)
+.env
+.env*.local
+data/manifest.json
+data/curation.json
+
+*.log
+.DS_Store
+next-env.d.ts
