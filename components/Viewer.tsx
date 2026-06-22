@@ -18,6 +18,13 @@ const human = (n: number | null): string | null => {
 const fmtDate = (ts: number | null) =>
   ts ? new Date(ts * 1000).toLocaleString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
 
+const LANGS: Record<string, string> = {
+  Portuguese: "🇧🇷 Português",
+  English: "🇬🇧 English",
+  Spanish: "🇪🇸 Español",
+};
+const langLabel = (l: string) => LANGS[l] || l;
+
 export default function Viewer({
   reels,
   curation: initial,
@@ -34,6 +41,7 @@ export default function Viewer({
   const [q, setQ] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [byFilter, setByFilter] = useState<string | null>(null);
+  const [langFilter, setLangFilter] = useState<string | null>(null);
   const [showHidden, setShowHidden] = useState(false);
   const [pw, setPw] = useState("");
   const [unlocked, setUnlocked] = useState(false);
@@ -63,6 +71,12 @@ export default function Viewer({
   const people = useMemo(() => {
     const c: Record<string, number> = {};
     for (const r of reels) c[r.by] = (c[r.by] || 0) + 1;
+    return Object.entries(c).sort((a, b) => b[1] - a[1]);
+  }, [reels]);
+
+  const langs = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const r of reels) if (r.lang) c[r.lang] = (c[r.lang] || 0) + 1;
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
   }, [reels]);
 
@@ -106,9 +120,10 @@ export default function Viewer({
       .filter((r) => !tagFilter || tagsOf(r.code).includes(tagFilter))
       .filter((r) => !qq || (r.caption + " " + r.transcript).toLowerCase().includes(qq))
       .filter((r) => !dateFilter || dayKey(r.date_ts) === dateFilter)
+      .filter((r) => !langFilter || r.lang === langFilter)
       .sort((a, b) => (b.date_ts || 0) - (a.date_ts || 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reels, q, tagFilter, byFilter, showHidden, curation, dateFilter]);
+  }, [reels, q, tagFilter, byFilter, langFilter, showHidden, curation, dateFilter]);
 
   const current = useMemo(() => reels.find((r) => r.code === selected) || null, [reels, selected]);
 
@@ -251,6 +266,19 @@ export default function Viewer({
                 onClick={() => setByFilter(byFilter === name ? null : name)}
               >
                 {name} <b>{n}</b>
+              </button>
+            ))}
+          </div>
+        )}
+        {langs.length > 1 && (
+          <div className="chips">
+            {langs.map(([l, n]) => (
+              <button
+                key={l}
+                className={`chip ${langFilter === l ? "on" : ""}`}
+                onClick={() => setLangFilter(langFilter === l ? null : l)}
+              >
+                {langLabel(l)} <b>{n}</b>
               </button>
             ))}
           </div>
