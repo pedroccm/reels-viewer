@@ -45,6 +45,12 @@ export default function Viewer({
     if (saved) setPw(saved);
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const hidden = useMemo(() => new Set(curation.hidden || []), [curation]);
   const tagsOf = (code: string) => curation.tags?.[code] || [];
 
@@ -144,15 +150,13 @@ export default function Viewer({
         <input
           className="search"
           type="text"
-          placeholder="Buscar na legenda + transcrição..."
+          placeholder="Buscar na transcrição..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         {people.length > 1 && (
           <div className="chips">
-            <button className={`chip ${!byFilter ? "on" : ""}`} onClick={() => setByFilter(null)}>
-              Todos
-            </button>
+            <button className={`chip ${!byFilter ? "on" : ""}`} onClick={() => setByFilter(null)}>Todos</button>
             {people.map(([name, n]) => (
               <button
                 key={name}
@@ -185,34 +189,31 @@ export default function Viewer({
         )}
       </div>
 
-      <div className="layout">
-        <div className="list">
+      <div className="main">
+        <div className="grid">
           {list.length === 0 && <div className="empty">Nada por aqui.</div>}
           {list.map((r) => {
             const isHid = hidden.has(r.code);
             return (
               <div
                 key={r.code}
-                className={`row ${selected === r.code ? "sel" : ""} ${isHid ? "hid" : ""}`}
+                className={`card ${selected === r.code ? "sel" : ""} ${isHid ? "hid" : ""}`}
                 onClick={() => setSelected(r.code)}
               >
-                {r.thumb_url ? (
-                  <img className="thumb" loading="lazy" src={r.thumb_url} alt="" />
-                ) : (
-                  <div className="thumb ph">{r.code}</div>
-                )}
-                <div className="rmeta">
-                  <div className="rcap">{r.caption || r.code}</div>
-                  <div className="rsub">
+                {r.thumb_url ? <img loading="lazy" src={r.thumb_url} alt="" /> : <div className="ph">{r.code}</div>}
+                <div className="grad" />
+                <div className="badge">{r.platform || "reel"}</div>
+                {isHid && <div className="hidmark">escondido</div>}
+                <div className="cmeta">
+                  <div className="who">
                     <span className="ava" style={{ background: colorFor(r.by || "?") }}>
                       {(r.by || "?").slice(0, 2).toUpperCase()}
                     </span>
                     <span>{r.by}</span>
-                    <span>· {fmtDate(r.date_ts)}</span>
-                    {isHid && <span>· escondido</span>}
                   </div>
+                  <div className="cdate">{fmtDate(r.date_ts)}</div>
                   {tagsOf(r.code).length > 0 && (
-                    <div className="rtags">
+                    <div className="ctags">
                       {tagsOf(r.code).map((t) => (
                         <span key={t} className="t">#{t}</span>
                       ))}
@@ -223,101 +224,93 @@ export default function Viewer({
             );
           })}
         </div>
+      </div>
 
-        <div className={`detail ${current ? "open" : ""}`}>
-          {!current ? (
-            <div className="empty">Selecione um reel à esquerda.</div>
-          ) : (
-            <>
-              <div className="dvideo">
-                <video
-                  key={current.code}
-                  src={current.video_url}
-                  controls
-                  autoPlay
-                  loop
-                  playsInline
-                  poster={current.thumb_url || undefined}
-                />
+      <div className={`drawer ${current ? "open" : ""}`}>
+        {current && (
+          <>
+            <div className="dclose">
+              <button onClick={() => setSelected(null)} aria-label="fechar">×</button>
+            </div>
+            <div className="dvideo">
+              <video
+                key={current.code}
+                src={current.video_url}
+                controls
+                autoPlay
+                loop
+                playsInline
+                poster={current.thumb_url || undefined}
+              />
+            </div>
+            <div className="dbody">
+              <div className="dmeta">
+                <span className="ava" style={{ background: colorFor(current.by || "?") }}>
+                  {(current.by || "?").slice(0, 2).toUpperCase()}
+                </span>
+                <span>{current.by}</span>
+                {current.date_ts && <span>· {fmtDate(current.date_ts)}</span>}
+                {current.lang && <span>· {current.lang}</span>}
               </div>
-              <div className="dbody">
-                <button className="btn back" onClick={() => setSelected(null)}>← voltar</button>
-                <h2>{current.caption || current.code}</h2>
-                <div className="dmeta">
-                  <span className="ava" style={{ background: colorFor(current.by || "?") }}>
-                    {(current.by || "?").slice(0, 2).toUpperCase()}
-                  </span>
-                  <span>{current.by}</span>
-                  {current.date_ts && <span>· {fmtDate(current.date_ts)}</span>}
-                  {current.lang && <span>· {current.lang}</span>}
-                </div>
-                <div className="dstats">
-                  {([
-                    ["Views", current.views],
-                    ["Likes", current.likes],
-                    ["Comentários", current.comments],
-                    ["Saves", current.saves],
-                    ["Shares", current.reshares],
-                  ] as [string, number | null][])
-                    .map(([label, v]) => [label, human(v)] as [string, string | null])
-                    .filter(([, v]) => v != null)
-                    .map(([label, v]) => (
-                      <span key={label}>
-                        {label} <b>{v}</b>
-                      </span>
-                    ))}
-                </div>
-
-                <div className="dtags">
-                  {tagsOf(current.code).map((t) => (
-                    <span key={t} className="dtag">
-                      #{t}
-                      {unlocked && (
-                        <button onClick={() => mutate({ op: "removeTag", code: current.code, tag: t })}>×</button>
-                      )}
+              <div className="dstats">
+                {([
+                  ["Views", current.views],
+                  ["Likes", current.likes],
+                  ["Comentários", current.comments],
+                  ["Saves", current.saves],
+                  ["Shares", current.reshares],
+                ] as [string, number | null][])
+                  .map(([label, v]) => [label, human(v)] as [string, string | null])
+                  .filter(([, v]) => v != null)
+                  .map(([label, v]) => (
+                    <span key={label}>
+                      {label} <b>{v}</b>
                     </span>
                   ))}
-                  {unlocked && (
-                    <input
-                      type="text"
-                      placeholder="+ tag"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addTag()}
-                    />
-                  )}
-                </div>
-
-                {unlocked && (
-                  <div className="actions">
-                    <button
-                      className="btn warn"
-                      onClick={() => mutate({ op: "setHidden", code: current.code, hidden: !hidden.has(current.code) })}
-                    >
-                      {hidden.has(current.code) ? "Mostrar de novo" : "Esconder este"}
-                    </button>
-                  </div>
-                )}
-
-                <div className="tlabel">Transcrição</div>
-                <div className="transcript">{current.transcript || "(sem transcrição)"}</div>
-
-                {current.caption && (
-                  <>
-                    <div className="tlabel">Legenda</div>
-                    <div className="transcript">{current.caption}</div>
-                  </>
-                )}
-
-                <div className="openlink">
-                  <a href={current.source_url} target="_blank" rel="noopener noreferrer">
-                    Abrir original ↗
-                  </a>
-                </div>
               </div>
-            </>
-          )}
-        </div>
+
+              <div className="dtags">
+                {tagsOf(current.code).map((t) => (
+                  <span key={t} className="dtag">
+                    #{t}
+                    {unlocked && (
+                      <button onClick={() => mutate({ op: "removeTag", code: current.code, tag: t })}>×</button>
+                    )}
+                  </span>
+                ))}
+                {unlocked && (
+                  <input
+                    type="text"
+                    placeholder="+ tag"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addTag()}
+                  />
+                )}
+              </div>
+
+              {unlocked && (
+                <div className="actions">
+                  <button
+                    className="btn warn"
+                    onClick={() => mutate({ op: "setHidden", code: current.code, hidden: !hidden.has(current.code) })}
+                  >
+                    {hidden.has(current.code) ? "Mostrar de novo" : "Esconder este"}
+                  </button>
+                </div>
+              )}
+
+              <div className="tlabel">Transcrição</div>
+              <div className="transcript">{current.transcript || "(sem transcrição)"}</div>
+
+              <div className="openlink">
+                <a href={current.source_url} target="_blank" rel="noopener noreferrer">
+                  Abrir original ↗
+                </a>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
