@@ -269,6 +269,7 @@ export default function Viewer({
                   ))}
               </div>
 
+              {(tagsOf(current.code).length > 0 || unlocked) && <div className="tlabel">Tags</div>}
               <div className="dtags">
                 {tagsOf(current.code).map((t) => (
                   <span key={t} className="dtag">
@@ -298,6 +299,13 @@ export default function Viewer({
                     {hidden.has(current.code) ? "Mostrar de novo" : "Esconder este"}
                   </button>
                 </div>
+              )}
+
+              {current.caption && (
+                <>
+                  <div className="tlabel">Legenda</div>
+                  <div className="transcript">{current.caption}</div>
+                </>
               )}
 
               <div className="tlabel">Transcrição</div>
