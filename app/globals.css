@@ -64,6 +64,28 @@ input:focus { border-color: #3a3a4a; }
 .chip.tag.on { background: linear-gradient(135deg,#2dd4bf,#38bdf8); }
 .toggle { margin-left: auto; color: var(--mut); font-size: 12.5px; display: flex; gap: 6px; align-items: center; }
 
+/* calendar */
+.calwrap { position: relative; display: inline-flex; }
+.calbackdrop { position: fixed; inset: 0; z-index: 29; }
+.calpop {
+  position: absolute; top: 38px; left: 0; z-index: 30;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px; width: 280px; box-shadow: 0 14px 36px rgba(0,0,0,.55);
+}
+.calhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.calhead b { font-weight: 500; font-size: 13px; text-transform: capitalize; }
+.calhead button { background: var(--card2); border: 1px solid var(--line); color: var(--txt); width: 28px; height: 28px; border-radius: 8px; font-size: 15px; }
+.calhead button:hover { border-color: #3a3a4a; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.calgrid .wd { font-size: 10px; color: var(--mut); text-align: center; padding: 2px 0; }
+.cell { aspect-ratio: 1; display: grid; place-items: center; font-size: 12px; border-radius: 8px; color: var(--mut); position: relative; }
+.cell.none { opacity: .28; }
+.cell.has { background: var(--card2); color: var(--txt); cursor: pointer; border: 1px solid var(--line); }
+.cell.has:hover { border-color: var(--accent); }
+.cell.has.sel { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
+.cell .dot { position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: #2dd4bf; }
+.cell.has.sel .dot { background: #fff; }
+
 /* grid (the main view, like the gallery) */
 .main { flex: 1; overflow-y: auto; }
 .grid {

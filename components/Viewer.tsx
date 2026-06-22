@@ -66,6 +66,38 @@ export default function Viewer({
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
   }, [reels]);
 
+  const dayKey = (ts: number | null) => {
+    if (!ts) return "";
+    const d = new Date(ts * 1000);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const byDay = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of reels) {
+      const k = dayKey(r.date_ts);
+      if (k) m.set(k, (m.get(k) || 0) + 1);
+    }
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reels]);
+  const newest = useMemo(() => {
+    let mx = 0;
+    for (const r of reels) if ((r.date_ts || 0) > mx) mx = r.date_ts || 0;
+    return mx ? new Date(mx * 1000) : new Date();
+  }, [reels]);
+  const [calOpen, setCalOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
+  const [calY, setCalY] = useState(() => newest.getFullYear());
+  const [calM, setCalM] = useState(() => newest.getMonth());
+  const shiftMonth = (delta: number) => {
+    let y = calY;
+    let m = calM + delta;
+    if (m < 0) { m = 11; y -= 1; }
+    if (m > 11) { m = 0; y += 1; }
+    setCalY(y);
+    setCalM(m);
+  };
+
   const list = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return reels
@@ -73,9 +105,10 @@ export default function Viewer({
       .filter((r) => !byFilter || r.by === byFilter)
       .filter((r) => !tagFilter || tagsOf(r.code).includes(tagFilter))
       .filter((r) => !qq || (r.caption + " " + r.transcript).toLowerCase().includes(qq))
+      .filter((r) => !dateFilter || dayKey(r.date_ts) === dateFilter)
       .sort((a, b) => (b.date_ts || 0) - (a.date_ts || 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reels, q, tagFilter, byFilter, showHidden, curation]);
+  }, [reels, q, tagFilter, byFilter, showHidden, curation, dateFilter]);
 
   const current = useMemo(() => reels.find((r) => r.code === selected) || null, [reels, selected]);
 
@@ -154,6 +187,60 @@ export default function Viewer({
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
+
+        <div className="calwrap">
+          <button className={`chip ${calOpen ? "on" : ""}`} onClick={() => setCalOpen((o) => !o)}>📅 Calendário</button>
+          {calOpen && (
+            <>
+              <div className="calbackdrop" onClick={() => setCalOpen(false)} />
+              <div className="calpop">
+                <div className="calhead">
+                  <button onClick={() => shiftMonth(-1)}>‹</button>
+                  <b>{new Date(calY, calM, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</b>
+                  <button onClick={() => shiftMonth(1)}>›</button>
+                </div>
+                <div className="calgrid">
+                  {["D", "S", "T", "Q", "Q", "S", "S"].map((w, i) => (
+                    <div className="wd" key={i}>{w}</div>
+                  ))}
+                  {(() => {
+                    const cells: (number | null)[] = [];
+                    const startWd = new Date(calY, calM, 1).getDay();
+                    const dim = new Date(calY, calM + 1, 0).getDate();
+                    for (let i = 0; i < startWd; i++) cells.push(null);
+                    for (let d = 1; d <= dim; d++) cells.push(d);
+                    return cells.map((d, i) => {
+                      if (d === null) return <div key={i} className="cell empty" />;
+                      const key = `${calY}-${String(calM + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                      const cnt = byDay.get(key);
+                      if (!cnt) return <div key={i} className="cell none">{d}</div>;
+                      return (
+                        <div
+                          key={i}
+                          className={`cell has ${dateFilter === key ? "sel" : ""}`}
+                          title={`${cnt} reels`}
+                          onClick={() => {
+                            setDateFilter(dateFilter === key ? null : key);
+                            setCalOpen(false);
+                          }}
+                        >
+                          {d}
+                          <span className="dot" />
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        {dateFilter && (
+          <button className="chip on" onClick={() => setDateFilter(null)} title="limpar dia">
+            {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })} ×
+          </button>
+        )}
+
         {people.length > 1 && (
           <div className="chips">
             <button className={`chip ${!byFilter ? "on" : ""}`} onClick={() => setByFilter(null)}>Todos</button>
