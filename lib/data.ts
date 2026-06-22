@@ -2,6 +2,17 @@ import { readJSON } from "./blobs";
 import type { Curation, Manifest, Reel } from "./types";
 
 export async function getManifest(): Promise<Manifest> {
+  // On deploy: fetch the manifest from a public URL (R2), cached briefly.
+  // Locally (no MANIFEST_URL): fall back to data/manifest.json.
+  const url = process.env.MANIFEST_URL;
+  if (url) {
+    try {
+      const res = await fetch(url, { next: { revalidate: 600 } });
+      if (res.ok) return (await res.json()) as Manifest;
+    } catch {
+      /* fall through */
+    }
+  }
   return readJSON<Manifest>("manifest", { items: [] });
 }
 
