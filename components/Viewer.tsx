@@ -50,6 +50,7 @@ export default function Viewer({
   const [tagInput, setTagInput] = useState("");
   const [busy, setBusy] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [noteDraft, setNoteDraft] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("editpw");
@@ -61,6 +62,11 @@ export default function Viewer({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    setNoteDraft((selected && curation.notes?.[selected]) || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
 
   const hidden = useMemo(() => new Set(curation.hidden || []), [curation]);
   const tagsOf = (code: string) => curation.tags?.[code] || [];
@@ -171,6 +177,13 @@ export default function Viewer({
     if (!current || !tagInput.trim()) return;
     mutate({ op: "addTag", code: current.code, tag: tagInput });
     setTagInput("");
+  }
+
+  function saveNote() {
+    if (!current) return;
+    const prev = curation.notes?.[current.code] || "";
+    if (noteDraft === prev) return;
+    mutate({ op: "setNote", code: current.code, note: noteDraft });
   }
 
   function printFrame() {
@@ -365,7 +378,10 @@ export default function Viewer({
                     </span>
                     <span>{r.by}</span>
                   </div>
-                  <div className="cdate">{fmtDate(r.date_ts)}</div>
+                  <div className="cdate">
+                    {fmtDate(r.date_ts)}
+                    {curation.notes?.[r.code] ? " · 📝" : ""}
+                  </div>
                   {tagsOf(r.code).length > 0 && (
                     <div className="ctags">
                       {tagsOf(r.code).map((t) => (
@@ -438,6 +454,23 @@ export default function Viewer({
                     </span>
                   ))}
               </div>
+
+              {(unlocked || curation.notes?.[current.code]) && (
+                <>
+                  <div className="tlabel">Nota</div>
+                  {unlocked ? (
+                    <textarea
+                      className="note"
+                      value={noteDraft}
+                      placeholder="Escreva uma nota sobre este reel... (salva ao sair do campo)"
+                      onChange={(e) => setNoteDraft(e.target.value)}
+                      onBlur={saveNote}
+                    />
+                  ) : (
+                    <div className="note-ro">{curation.notes?.[current.code]}</div>
+                  )}
+                </>
+              )}
 
               {(tagsOf(current.code).length > 0 || unlocked) && <div className="tlabel">Tags</div>}
               <div className="dtags">

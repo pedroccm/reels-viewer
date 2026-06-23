@@ -17,11 +17,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = (await req.json()) as {
-    op: "check" | "addTag" | "removeTag" | "setHidden" | "setLang";
+    op: "check" | "addTag" | "removeTag" | "setHidden" | "setLang" | "setNote";
     code?: string;
     tag?: string;
     hidden?: boolean;
     lang?: string;
+    note?: string;
   };
 
   if (body.op === "check") return NextResponse.json({ ok: true });
@@ -51,6 +52,11 @@ export async function POST(req: NextRequest) {
     const lang = (body.lang || "").trim();
     if (lang) cur.langs[code] = lang;
     else delete cur.langs[code];
+  } else if (body.op === "setNote") {
+    cur.notes = cur.notes || {};
+    const note = (body.note || "").slice(0, 4000);
+    if (note.trim()) cur.notes[code] = note;
+    else delete cur.notes[code];
   } else {
     return NextResponse.json({ error: "bad op" }, { status: 400 });
   }

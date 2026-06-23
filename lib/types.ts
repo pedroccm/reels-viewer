@@ -21,6 +21,7 @@ export type Curation = {
   tags: Record<string, string[]>; // code -> tags
   hidden: string[]; // codes
   langs?: Record<string, string>; // code -> overridden language
+  notes?: Record<string, string>; // code -> free-text note
 };
 
 export type Manifest = {

@@ -143,6 +143,10 @@ input:focus { border-color: #3a3a4a; }
 .pick:hover { color: #8af0e2; border-color: rgba(45,212,191,.55); background: rgba(45,212,191,.07); }
 .pick b { color: var(--mut); font-weight: 400; }
 
+.note { width: 100%; min-height: 78px; resize: vertical; background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; font-family: inherit; outline: none; }
+.note:focus { border-color: var(--accent); }
+.note-ro { font-size: 13.5px; line-height: 1.55; color: #e7e7ef; white-space: pre-wrap; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+
 .langedit { display: flex; align-items: center; gap: 8px; margin: 12px 0; color: var(--mut); font-size: 12.5px; }
 .langedit select { background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 8px; padding: 6px 8px; font-size: 13px; outline: none; }
 .langedit select:focus { border-color: #3a3a4a; }
