@@ -92,6 +92,8 @@ export default function Viewer({
     }
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
   }, [reels, curation]);
+  // only the significant languages as chips (the long tail clutters the bar)
+  const mainLangs = useMemo(() => langs.filter(([l, n]) => n >= 10 || l === langFilter), [langs, langFilter]);
 
   const dayKey = (ts: number | null) => {
     if (!ts) return "";
@@ -112,17 +114,27 @@ export default function Viewer({
     for (const r of reels) if ((r.date_ts || 0) > mx) mx = r.date_ts || 0;
     return mx ? new Date(mx * 1000) : new Date();
   }, [reels]);
+  const monthRange = useMemo(() => {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const r of reels) {
+      if (!r.date_ts) continue;
+      const d = new Date(r.date_ts * 1000);
+      const v = d.getFullYear() * 12 + d.getMonth();
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    return { min, max };
+  }, [reels]);
   const [calOpen, setCalOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<string | null>(null);
   const [calY, setCalY] = useState(() => newest.getFullYear());
   const [calM, setCalM] = useState(() => newest.getMonth());
   const shiftMonth = (delta: number) => {
-    let y = calY;
-    let m = calM + delta;
-    if (m < 0) { m = 11; y -= 1; }
-    if (m > 11) { m = 0; y += 1; }
-    setCalY(y);
-    setCalM(m);
+    const ym = calY * 12 + calM + delta;
+    if (ym < monthRange.min || ym > monthRange.max) return;
+    setCalY(Math.floor(ym / 12));
+    setCalM(((ym % 12) + 12) % 12);
   };
 
   const list = useMemo(() => {
@@ -257,9 +269,9 @@ export default function Viewer({
               <div className="calbackdrop" onClick={() => setCalOpen(false)} />
               <div className="calpop">
                 <div className="calhead">
-                  <button onClick={() => shiftMonth(-1)}>‹</button>
+                  <button onClick={() => shiftMonth(-1)} disabled={calY * 12 + calM <= monthRange.min}>‹</button>
                   <b>{new Date(calY, calM, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</b>
-                  <button onClick={() => shiftMonth(1)}>›</button>
+                  <button onClick={() => shiftMonth(1)} disabled={calY * 12 + calM >= monthRange.max}>›</button>
                 </div>
                 <div className="calgrid">
                   {["D", "S", "T", "Q", "Q", "S", "S"].map((w, i) => (
@@ -287,7 +299,6 @@ export default function Viewer({
                           }}
                         >
                           {d}
-                          <span className="dot" />
                         </div>
                       );
                     });
@@ -322,9 +333,9 @@ export default function Viewer({
             ))}
           </div>
         )}
-        {langs.length > 1 && (
+        {mainLangs.length > 1 && (
           <div className="chips">
-            {langs.map(([l, n]) => (
+            {mainLangs.map(([l, n]) => (
               <button
                 key={l}
                 className={`chip ${langFilter === l ? "on" : ""}`}

@@ -76,15 +76,14 @@ input:focus { border-color: #3a3a4a; }
 .calhead b { font-weight: 500; font-size: 13px; text-transform: capitalize; }
 .calhead button { background: var(--card2); border: 1px solid var(--line); color: var(--txt); width: 28px; height: 28px; border-radius: 8px; font-size: 15px; }
 .calhead button:hover { border-color: #3a3a4a; }
-.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.calgrid .wd { font-size: 10px; color: var(--mut); text-align: center; padding: 2px 0; }
-.cell { aspect-ratio: 1; display: grid; place-items: center; font-size: 12px; border-radius: 8px; color: var(--mut); position: relative; }
-.cell.none { opacity: .28; }
-.cell.has { background: var(--card2); color: var(--txt); cursor: pointer; border: 1px solid var(--line); }
-.cell.has:hover { border-color: var(--accent); }
+.calhead button:disabled { opacity: .25; cursor: default; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calgrid .wd { font-size: 10px; color: #8a8aa0; text-align: center; padding: 2px 0; font-weight: 600; }
+.cell { aspect-ratio: 1; display: grid; place-items: center; font-size: 12.5px; border-radius: 8px; color: #40404e; position: relative; }
+.cell.none { color: #34343f; }
+.cell.has { background: rgba(123, 92, 255, .2); color: #fff; cursor: pointer; border: 1px solid rgba(123, 92, 255, .4); font-weight: 600; }
+.cell.has:hover { background: rgba(123, 92, 255, .42); border-color: var(--accent2); }
 .cell.has.sel { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
-.cell .dot { position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: #2dd4bf; }
-.cell.has.sel .dot { background: #fff; }
 
 /* grid (the main view, like the gallery) */
 .main { flex: 1; overflow-y: auto; }
