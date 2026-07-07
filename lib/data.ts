@@ -7,7 +7,7 @@ export async function getManifest(): Promise<Manifest> {
   const url = process.env.MANIFEST_URL;
   if (url) {
     try {
-      const res = await fetch(url, { next: { revalidate: 600 } });
+      const res = await fetch(url, { next: { revalidate: 600, tags: ["manifest"] } });
       if (res.ok) return (await res.json()) as Manifest;
     } catch {
       /* fall through */
