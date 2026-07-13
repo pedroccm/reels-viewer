@@ -51,6 +51,7 @@ export default function Viewer({
   const [busy, setBusy] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  const [photoIdx, setPhotoIdx] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("editpw");
@@ -65,6 +66,7 @@ export default function Viewer({
 
   useEffect(() => {
     setNoteDraft((selected && curation.notes?.[selected]) || "");
+    setPhotoIdx(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
 
@@ -380,7 +382,7 @@ export default function Viewer({
               >
                 {r.thumb_url ? <img loading="lazy" src={r.thumb_url} alt="" /> : <div className="ph">{r.code}</div>}
                 <div className="grad" />
-                <div className="badge">{r.platform || "reel"}</div>
+                <div className="badge">{r.photos?.length && !r.video_url ? `📷 ${r.photos.length}` : r.platform || "reel"}</div>
                 {isHid && <div className="hidmark">escondido</div>}
                 <div className="cmeta">
                   <div className="who">
@@ -413,24 +415,55 @@ export default function Viewer({
             <div className="dclose">
               <button onClick={() => setSelected(null)} aria-label="fechar">×</button>
             </div>
-            <div className="dvideo">
-              <video
-                key={current.code}
-                ref={videoRef}
-                src={current.video_url}
-                crossOrigin="anonymous"
-                controls
-                autoPlay
-                loop
-                playsInline
-                poster={current.thumb_url || undefined}
-              />
-            </div>
-            <div className="printbar">
-              <button className="btn" onClick={printFrame} title="baixa o frame atual do vídeo (pause antes)">
-                📸 Print do frame
-              </button>
-            </div>
+            {current.photos?.length && !current.video_url ? (
+              <div className="dvideo">
+                <div className="gal">
+                  <img src={current.photos[Math.min(photoIdx, current.photos.length - 1)]} alt="" />
+                  {current.photos.length > 1 && (
+                    <>
+                      <button
+                        className="gnav"
+                        onClick={() => setPhotoIdx((photoIdx - 1 + current.photos!.length) % current.photos!.length)}
+                        aria-label="foto anterior"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        className="gnav right"
+                        onClick={() => setPhotoIdx((photoIdx + 1) % current.photos!.length)}
+                        aria-label="próxima foto"
+                      >
+                        ›
+                      </button>
+                      <div className="gcnt">
+                        {Math.min(photoIdx, current.photos.length - 1) + 1}/{current.photos.length}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="dvideo">
+                  <video
+                    key={current.code}
+                    ref={videoRef}
+                    src={current.video_url || undefined}
+                    crossOrigin="anonymous"
+                    controls
+                    autoPlay
+                    loop
+                    playsInline
+                    poster={current.thumb_url || undefined}
+                  />
+                </div>
+                <div className="printbar">
+                  <button className="btn" onClick={printFrame} title="baixa o frame atual do vídeo (pause antes)">
+                    📸 Print do frame
+                  </button>
+                </div>
+              </>
+            )}
             <div className="dbody">
               <div className="dmeta">
                 <span className="ava" style={{ background: colorFor(current.by || "?") }}>
@@ -559,7 +592,9 @@ export default function Viewer({
               )}
 
               <div className="tlabel">Transcrição</div>
-              <div className="transcript">{current.transcript || "(sem transcrição)"}</div>
+              <div className="transcript">
+                {current.transcript || (current.photos?.length ? "(post de fotos, sem áudio)" : "(sem transcrição)")}
+              </div>
 
               <div className="openlink">
                 <a href={current.source_url} target="_blank" rel="noopener noreferrer">

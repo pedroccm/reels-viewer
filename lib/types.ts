@@ -11,7 +11,8 @@ export type Reel = {
   comments: number | null;
   saves: number | null;
   reshares: number | null;
-  video_url: string;
+  video_url: string | null; // null for photo-only posts (carousels)
+  photos?: string[] | null; // photo post / carousel image URLs
   thumb_url: string | null;
   lang: string;
   transcript: string;
