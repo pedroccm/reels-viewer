@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Curation, Reel } from "@/lib/types";
+import Feed from "@/components/Feed";
 
 const COLORS = ["#ff3d77", "#7b5cff", "#2dd4bf", "#f59e0b", "#38bdf8", "#fb7185", "#a3e635", "#c084fc"];
 const colorFor = (n: string) => {
@@ -52,6 +53,7 @@ export default function Viewer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [feedAt, setFeedAt] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("editpw");
@@ -59,10 +61,14 @@ export default function Viewer({
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (selected) setSelected(null);
+      else setFeedAt(null);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [selected]);
 
   useEffect(() => {
     setNoteDraft((selected && curation.notes?.[selected]) || "");
@@ -234,6 +240,18 @@ export default function Viewer({
           {list.length} de {reels.length}
           {people.length > 1 ? ` · ${people.length} pessoas` : ""}
         </span>
+        {list.length > 0 && (
+          <button
+            className="playbtn"
+            onClick={() => {
+              setSelected(null);
+              setFeedAt(0);
+            }}
+            title="navegar como no Instagram"
+          >
+            ▶ Assistir
+          </button>
+        )}
         <span className="spacer" />
         {editable &&
           (unlocked ? (
@@ -372,7 +390,7 @@ export default function Viewer({
       <div className="main">
         <div className="grid">
           {list.length === 0 && <div className="empty">Nada por aqui.</div>}
-          {list.map((r) => {
+          {list.map((r, i) => {
             const isHid = hidden.has(r.code);
             return (
               <div
@@ -383,6 +401,18 @@ export default function Viewer({
                 {r.thumb_url ? <img loading="lazy" src={r.thumb_url} alt="" /> : <div className="ph">{r.code}</div>}
                 <div className="grad" />
                 <div className="badge">{r.photos?.length && !r.video_url ? `📷 ${r.photos.length}` : r.platform || "reel"}</div>
+                <button
+                  className="cplay"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelected(null);
+                    setFeedAt(i);
+                  }}
+                  aria-label="assistir a partir daqui"
+                  title="assistir a partir daqui"
+                >
+                  ▶
+                </button>
                 {isHid && <div className="hidmark">escondido</div>}
                 <div className="cmeta">
                   <div className="who">
@@ -408,6 +438,16 @@ export default function Viewer({
           })}
         </div>
       </div>
+
+      {feedAt != null && list.length > 0 && (
+        <Feed
+          items={list}
+          startIndex={Math.min(feedAt, list.length - 1)}
+          suspended={Boolean(current)}
+          onClose={() => setFeedAt(null)}
+          onDetails={(code) => setSelected(code)}
+        />
+      )}
 
       <div className={`drawer ${current ? "open" : ""}`}>
         {current && (

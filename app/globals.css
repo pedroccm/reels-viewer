@@ -168,6 +168,150 @@ input:focus { border-color: #3a3a4a; }
 .rel:hover { border-color: var(--accent); transform: translateY(-2px); }
 .rel img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* ============ card play button ============ */
+.cplay {
+  position: absolute; top: 8px; left: 8px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.3); color: #fff;
+  display: grid; place-items: center; font-size: 13px; padding: 0 0 0 2px;
+  opacity: 0; transition: opacity .15s, transform .15s;
+}
+.card:hover .cplay { opacity: 1; }
+.cplay:hover { transform: scale(1.1); background: rgba(0,0,0,.75); }
+@media (hover: none) { .cplay { opacity: 1; } }
+
+.playbtn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; color: #fff; font-weight: 600;
+  border-radius: 999px; padding: 7px 14px; font-size: 13px; white-space: nowrap;
+}
+.playbtn:hover { filter: brightness(1.1); }
+
+/* ============ feed mode (Instagram-like vertical swipe) ============ */
+.feedwrap { position: fixed; inset: 0; z-index: 40; background: #000; touch-action: manipulation; }
+.feed {
+  height: 100%; overflow-y: auto;
+  scroll-snap-type: y mandatory; overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.feed::-webkit-scrollbar { display: none; }
+.fitem {
+  height: 100%; position: relative;
+  scroll-snap-align: start; scroll-snap-stop: always;
+}
+.fframe {
+  position: relative; height: 100%; margin: 0 auto;
+  width: 100%; max-width: min(100%, calc(100dvh * 0.5625));
+}
+.fmedia { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.fmedia video, .fmedia .fposter { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.fpause {
+  position: absolute; inset: 0; display: grid; place-items: center; z-index: 3; pointer-events: none;
+}
+.fpause span {
+  width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.3);
+  color: #fff; font-size: 30px; padding-left: 6px;
+}
+
+.ftop {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 45;
+  display: flex; align-items: center;
+  padding: calc(10px + env(safe-area-inset-top)) 14px 14px;
+  background: linear-gradient(rgba(0,0,0,.55), transparent);
+  pointer-events: none;
+}
+.ftop .fclose {
+  pointer-events: auto;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.25);
+  color: #fff; font-size: 17px; display: grid; place-items: center;
+}
+.ftop .fcount {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  color: #fff; font-size: 12.5px; opacity: .85; text-shadow: 0 1px 4px rgba(0,0,0,.8);
+  padding-top: env(safe-area-inset-top);
+}
+
+.frail {
+  position: absolute; right: 10px; bottom: calc(96px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 14px; align-items: center; z-index: 4;
+}
+.frail button, .frail a {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.22);
+  color: #fff; font-size: 19px; display: grid; place-items: center;
+  text-decoration: none; backdrop-filter: blur(6px); cursor: pointer;
+}
+.frail button:active, .frail a:active { transform: scale(.92); }
+.frail .finfo { font-size: 22px; font-style: normal; }
+.frail .fstat { color: #fff; font-size: 11.5px; text-shadow: 0 1px 4px rgba(0,0,0,.85); margin-top: -6px; white-space: nowrap; }
+
+.fmeta {
+  position: absolute; left: 12px; right: 68px;
+  bottom: calc(30px + env(safe-area-inset-bottom));
+  z-index: 4; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.75);
+}
+.fwho { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; flex-wrap: wrap; }
+.fwho .ava { width: 26px; height: 26px; font-size: 11px; }
+.fcreator { font-weight: 400; opacity: .9; }
+.fdate { font-size: 11.5px; opacity: .7; font-weight: 400; }
+.fcap {
+  margin-top: 6px; font-size: 13px; line-height: 1.45; cursor: pointer;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  white-space: pre-wrap; word-break: break-word;
+}
+.fcap.open {
+  display: block; -webkit-line-clamp: unset; max-height: 40vh; overflow-y: auto;
+  background: rgba(0,0,0,.6); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px);
+}
+
+.fprog {
+  position: absolute; left: 10px; right: 10px;
+  bottom: calc(2px + env(safe-area-inset-bottom));
+  height: 20px; display: flex; align-items: center; z-index: 5; cursor: pointer;
+  touch-action: none;
+}
+.fprog .track { height: 3px; width: 100%; background: rgba(255,255,255,.25); border-radius: 2px; overflow: hidden; }
+.fprog .fill { height: 100%; width: 0%; background: #fff; border-radius: 2px; }
+.fprog:hover .track { height: 5px; }
+
+/* photo carousel inside the feed */
+.fgal { width: 100%; height: 100%; position: relative; }
+.fgal-track {
+  display: flex; height: 100%; overflow-x: auto;
+  scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+}
+.fgal-track::-webkit-scrollbar { display: none; }
+.fgal-slide {
+  flex: 0 0 100%; height: 100%; scroll-snap-align: start;
+  display: flex; align-items: center; justify-content: center;
+}
+.fgal-slide img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.fgal-cnt {
+  position: absolute; top: calc(64px + env(safe-area-inset-top)); right: 12px;
+  background: rgba(0,0,0,.55); color: #fff; font-size: 12px; padding: 3px 10px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,.18); z-index: 4;
+}
+.fgal-dots {
+  position: absolute; bottom: calc(8px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 4;
+}
+.fgal-dots span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.4); }
+.fgal-dots span.on { background: #fff; }
+
+/* ============ mobile ============ */
+@media (max-width: 640px) {
+  header { padding: 10px 12px; gap: 8px; }
+  .brand { font-size: 15px; }
+  .counts { display: none; }
+  .filters { padding: 8px 12px; gap: 6px; }
+  .grid { padding: 12px 12px 60px; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+  .dvideo { padding: 0 10px; }
+  .dbody { padding: 12px 14px 60px; }
+}
+
 @media (max-width: 520px) {
   .filters .search { width: 100%; }
   .drawer { width: 100%; }
